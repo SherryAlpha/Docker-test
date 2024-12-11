@@ -35,7 +35,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/my-node-sample-project:latest
 
-  deploy:
+    deploy:
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -50,10 +50,10 @@ jobs:
 
       - name: Log file structure
         run: |
+          echo "Finding stack-deploy.yml file..."
+          find . -name "stack-deploy.yml"
           echo "Logging complete file structure:"
-          find . -type f | sort
-          echo "Detailed structure:"
-          ls -laR
+          find . | sort
 
       - name: Deploy to Docker Swarm
         run: |
