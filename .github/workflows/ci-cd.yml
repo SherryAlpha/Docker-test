@@ -43,8 +43,16 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      # Initialize Docker Swarm
+      - name: Initialize Docker Swarm
+        run: docker swarm init || true
+
+      # Ensure file permissions
+      - name: Set file permissions
+        run: chmod 644 stack-deploy.yml
+
       # Deploy to Docker Swarm
       - name: Deploy to Docker Swarm
         run: |
           docker network create --driver overlay app-network || true
-          docker stack deploy -c stack-deploy.yml docker-test
+          docker stack deploy -c ./stack-deploy.yml docker-test
