@@ -47,6 +47,10 @@ jobs:
       - name: Initialize Docker Swarm
         run: docker swarm init || true
 
+      # Debug: Check if stack-deploy.yml exists
+      - name: Check stack-deploy.yml exists
+        run: ls -l stack-deploy.yml
+
       # Deploy to Docker Swarm
       - name: Deploy to Docker Swarm
         run: |
