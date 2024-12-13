@@ -51,14 +51,20 @@ jobs:
       - name: Initialize Docker Swarm
         run: docker swarm init || true
 
+### Finding stack-deploy.yml 
+
       - name: Find stack-deploy.yml
         run: find . -name "stack-deploy.yml"
+
+### logged file structure to find all files
 
       - name: Log file structure
         run: |
           echo "Logging complete file structure:"
           find . -type f | sort
           ls -laR
+
+### If found deploy to docker Swarm
 
       - name: Deploy to Docker Swarm
         run: |
