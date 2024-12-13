@@ -33,9 +33,23 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/my-node-sample-project:latest
 
+  fail:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Check for stack-deploy.yml
+        run: |
+          if ! [ -f "./stack-deploy.yml" ]; then
+            echo "stack-deploy.yml not found! Failing the job.";
+            exit 1;
+          fi
+        continue-on-error: false
+
   deploy:
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build, fail]
     steps:
       - name: Checkout code (force fresh checkout)
         uses: actions/checkout@v3
@@ -51,20 +65,14 @@ jobs:
       - name: Initialize Docker Swarm
         run: docker swarm init || true
 
-### Finding stack-deploy.yml 
-
       - name: Find stack-deploy.yml
         run: find . -name "stack-deploy.yml"
-
-### logged file structure to find all files
 
       - name: Log file structure
         run: |
           echo "Logging complete file structure:"
           find . -type f | sort
           ls -laR
-
-### If found deploy to docker Swarm
 
       - name: Deploy to Docker Swarm
         run: |
