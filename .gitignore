@@ -1,3 +1,6 @@
+## Added temporary file here for testing
+.stack-deploy.yml
+
 # Logs
 logs
 *.log

@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - staging
 
 jobs:
   build:
@@ -12,13 +13,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Debug repository checkout
-        run: ls -la
-
       - name: Log file structure
-        run: |
-          echo "Listing all files in workspace:"
-          find . | sort
+        run: find . | sort
 
       - name: Log in to DockerHub
         uses: docker/login-action@v2
@@ -31,25 +27,13 @@ jobs:
         with:
           context: ./app
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/my-node-sample-project:latest
-
-  fail:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Check for stack-deploy.yml
-        run: |
-          if ! [ -f "./stack-deploy.yml" ]; then
-            echo "stack-deploy.yml not found! Failing the job.";
-            exit 1;
-          fi
-        continue-on-error: false
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/my-node-sample-project:latest
+            ${{ secrets.DOCKER_USERNAME }}/my-node-sample-project:staging
 
   deploy:
     runs-on: ubuntu-latest
-    needs: [build, fail]
+    needs: build
     steps:
       - name: Checkout code (force fresh checkout)
         uses: actions/checkout@v3
@@ -65,16 +49,13 @@ jobs:
       - name: Initialize Docker Swarm
         run: docker swarm init || true
 
-      - name: Find stack-deploy.yml
-        run: find . -name "stack-deploy.yml"
-
-      - name: Log file structure
+      - name: Deploy to Environment
         run: |
-          echo "Logging complete file structure:"
-          find . -type f | sort
-          ls -laR
-
-      - name: Deploy to Docker Swarm
-        run: |
-          docker network create --driver overlay app-network || true
-          docker stack deploy -c ./stack-deploy.yml docker-test
+          if [ "${{ github.ref_name }}" == "main" ]; then
+            docker stack deploy -c ./stack-deploy-production.yml docker-test-production
+          elif [ "${{ github.ref_name }}" == "staging" ]; then
+            docker stack deploy -c ./stack-deploy-staging.yml docker-test-staging
+          else
+            echo "No matching branch for deployment."
+            exit 1
+          fi
